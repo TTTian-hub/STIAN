@@ -16,19 +16,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build (Next.js standalone)
-        run: npm run build
-
-      - name: Deploy to CloudBase 云托管
+      # 官方 0 配置 Action：只需 secretId / secretKey / envId 三个参数，
+      # 部署逻辑读取根目录 cloudbaserc.json（容器插件 → Dockerfile 构建）。
+      # DEEPSEEK_API_KEY 通过 env 下发，cloudbaserc.json 用 {{env.DEEPSEEK_API_KEY}} 引用注入容器。
+      - name: Deploy to Tencent CloudBase
         uses: TencentCloudBase/cloudbase-action@v2
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -36,13 +27,9 @@ jobs:
           secretId: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
           secretKey: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
           envId: ${{ secrets.CLOUDBASE_ENV_ID }}
-          # CloudBase Framework 部署（读取仓库根目录 cloudbase.yml）
-          run: npx -y @cloudbase/cli framework deploy -e ${{ secrets.CLOUDBASE_ENV_ID }} --risk
 
-      # 说明：
-      # 若不想用 CI，可在 CloudBase 控制台「云托管 → 新建服务 → 来源: GitHub」
-      # 直接导入本仓库（TTTian-hub/STIAN, 分支 main），Dockerfile 已内置，端口 3000。
-      # 无论哪种方式，都需在服务环境变量中设置：
-      #   AI_PROVIDER=deepseek
-      #   DEEPSEEK_API_KEY=sk-你的真实key
-      # 详见 DEPLOY.md。
+# 需在仓库 Settings → Secrets and variables → Actions 配置 4 个 Secret：
+#   CLOUDBASE_ENV_ID          CloudBase 环境 ID
+#   TENCENT_CLOUD_SECRET_ID   腾讯云 CAM SecretId
+#   TENCENT_CLOUD_SECRET_KEY  腾讯云 CAM SecretKey
+#   DEEPSEEK_API_KEY          DeepSeek API Key (sk-...)

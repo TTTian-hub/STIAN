@@ -1,0 +1,29 @@
+{
+  "envId": "{{env.ENV_ID}}",
+  "version": "2.0",
+  "framework": {
+    "name": "askfate",
+    "plugins": {
+      "askfate": {
+        "use": "@cloudbase/framework-plugin-container",
+        "inputs": {
+          "serviceName": "askfate",
+          "servicePath": "/askfate",
+          "dockerfilePath": "./Dockerfile",
+          "buildDir": "./",
+          "containerPort": 3000,
+          "isPublic": true,
+          "minNum": 0,
+          "maxNum": 2,
+          "cpu": 0.5,
+          "mem": 1,
+          "envVariables": {
+            "AI_PROVIDER": "deepseek",
+            "DEEPSEEK_API_KEY": "{{env.DEEPSEEK_API_KEY}}",
+            "NODE_ENV": "production"
+          }
+        }
+      }
+    }
+  }
+}
