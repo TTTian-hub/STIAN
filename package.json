@@ -11,8 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "postinstall": "node scripts/postinstall.js"
+    "lint": "eslint"
   },
   "keywords": [
     "fortune-telling",
