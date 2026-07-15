@@ -1,0 +1,381 @@
+/* F-Teller - Minimal Elegant Design */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* F-Teller - Light Elegant Theme */
+:root {
+  --radius: 0.5rem;
+
+  /* Light cyan background */
+  --background: #ECFEFF;
+  --foreground: #164E63;
+
+  --card: #FFFFFF;
+  --card-foreground: #164E63;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #164E63;
+
+  /* Cyan primary */
+  --primary: #0891B2;
+  --primary-foreground: #FFFFFF;
+
+  /* Light cyan secondary */
+  --secondary: #CFFAFE;
+  --secondary-foreground: #155E75;
+
+  /* Muted */
+  --muted: #F0FDFF;
+  --muted-foreground: #64748B;
+
+  /* Accent - bright cyan */
+  --accent: #22D3EE;
+  --accent-foreground: #164E63;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #A5F3FC;
+  --input: #E0F2FE;
+  --ring: #0891B2;
+
+  /* Chart colors */
+  --chart-1: #0891B2;
+  --chart-2: #22D3EE;
+  --chart-3: #06B6D4;
+  --chart-4: #2DD4BF;
+  --chart-5: #14B8A6;
+
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #164E63;
+  --sidebar-primary: #0891B2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #CFFAFE;
+  --sidebar-accent-foreground: #155E75;
+  --sidebar-border: #A5F3FC;
+  --sidebar-ring: #0891B2;
+}
+
+/* F-Teller - Dark Elegant Theme */
+.dark {
+  --background: #0F172A;
+  --foreground: #E2E8F0;
+
+  --card: #1E293B;
+  --card-foreground: #E2E8F0;
+
+  --popover: #1E293B;
+  --popover-foreground: #E2E8F0;
+
+  /* Cyan primary - brighter in dark */
+  --primary: #22D3EE;
+  --primary-foreground: #0F172A;
+
+  /* Dark cyan secondary */
+  --secondary: #164E63;
+  --secondary-foreground: #CFFAFE;
+
+  /* Muted - darker */
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+
+  /* Accent - cyan glow */
+  --accent: #06B6D4;
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #334155;
+  --input: #334155;
+  --ring: #22D3EE;
+
+  /* Chart colors - brighter in dark */
+  --chart-1: #22D3EE;
+  --chart-2: #2DD4BF;
+  --chart-3: #38BDF8;
+  --chart-4: #34D399;
+  --chart-5: #60A5FA;
+
+  /* Sidebar */
+  --sidebar: #1E293B;
+  --sidebar-foreground: #E2E8F0;
+  --sidebar-primary: #22D3EE;
+  --sidebar-primary-foreground: #0F172A;
+  --sidebar-accent: #164E63;
+  --sidebar-accent-foreground: #CFFAFE;
+  --sidebar-border: #334155;
+  --sidebar-ring: #22D3EE;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* F-Teller Custom Styles - Minimal & Clean */
+@layer components {
+  /* Clean Card */
+  .clean-card {
+    @apply bg-white rounded-xl border border-cyan-100;
+    box-shadow: 0 1px 3px rgba(8, 145, 178, 0.08);
+  }
+  .dark .clean-card {
+    @apply bg-slate-800 border-slate-700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .clean-card-hover {
+    @apply transition-all duration-200;
+  }
+  .clean-card-hover:hover {
+    @apply border-cyan-200;
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.12);
+    transform: translateY(-1px);
+  }
+  .dark .clean-card-hover:hover {
+    @apply border-slate-600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Clean Navbar - floating style */
+  .clean-navbar {
+    @apply fixed top-0 left-0 right-0 z-50;
+    @apply bg-white/80 backdrop-blur-xl border-b border-cyan-100;
+  }
+  .dark .clean-navbar {
+    @apply bg-slate-900/80 border-slate-700;
+  }
+
+  /* Clean Background */
+  .clean-bg {
+    background: linear-gradient(180deg, #ECFEFF 0%, #F0FDFF 50%, #ECFEFF 100%);
+  }
+  .dark .clean-bg {
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+  }
+
+  /* Gradient Text - subtle */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0891B2 0%, #06B6D4 50%, #22D3EE 100%);
+  }
+  .dark .gradient-text {
+    background-image: linear-gradient(135deg, #22D3EE 0%, #38BDF8 50%, #60A5FA 100%);
+  }
+
+  /* Subtle glow */
+  .glow-subtle {
+    box-shadow: 0 0 20px rgba(8, 145, 178, 0.15);
+  }
+
+  /* Feature Icon - clean */
+  .feature-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+    @apply bg-cyan-50 border border-cyan-100;
+  }
+  .dark .feature-icon {
+    @apply bg-slate-800 border-slate-600;
+  }
+
+  /* Clean Button */
+  .btn-clean {
+    @apply relative px-6 py-3 rounded-lg font-medium;
+    @apply bg-cyan-600 text-white transition-all duration-200;
+  }
+  .btn-clean:hover {
+    @apply bg-cyan-500;
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg font-medium;
+    @apply bg-white text-cyan-700 border border-cyan-200;
+    @apply transition-all duration-200;
+  }
+  .btn-secondary:hover {
+    @apply bg-cyan-50 border-cyan-300;
+  }
+
+  /* Section Divider */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #A5F3FC, transparent);
+  }
+
+  /* Form Input - clean */
+  .input-clean {
+    @apply w-full px-4 py-3 bg-white border border-cyan-200 rounded-lg;
+    @apply text-foreground placeholder:text-slate-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400;
+    @apply transition-all duration-200;
+  }
+
+  /* Mobile Optimizations */
+  .mobile-container {
+    @apply w-full max-w-lg mx-auto px-4 sm:px-6;
+  }
+
+  .mobile-full {
+    @apply w-full;
+  }
+
+  /* Touch targets - minimum 44px */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Spacing for mobile */
+  .mobile-section {
+    @apply py-8 sm:py-12;
+  }
+
+  .mobile-gap {
+    @apply gap-4 sm:gap-6;
+  }
+}
+
+/* Scrollbar - clean */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #A5F3FC;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #67E8F9;
+}
+
+/* Animations - subtle */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* Performance optimizations */
+@supports (font-variation-settings: normal) {
+  body {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .mobile-stack {
+    @apply flex-col;
+  }
+}
+
+/* Touch action optimization */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  /* Safe area for notched devices */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
