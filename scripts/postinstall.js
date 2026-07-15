@@ -2,39 +2,36 @@
 
 /**
  * Postinstall script for fortuning-ai
- * This runs after npm install to set up the project
+ *
+ * 注意：这是一个纯提示性的脚本，绝不应中断 `npm ci` / Docker 构建。
+ * 因此整体包在 try/catch 中，任何异常都安全退出（code 0）；
+ * 且不再递归执行 `npm install`（依赖已由 npm ci 安装完毕，递归调用在
+ * 容器/CI 环境下可能触发非预期失败）。
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+try {
+  const fs = require('fs');
+  const path = require('path');
 
-const projectRoot = path.resolve(__dirname, '..');
+  const projectRoot = path.resolve(__dirname, '..');
 
-console.log('🔮 Setting up Fortuning AI...\n');
+  console.log('🔮 Setting up Fortuning AI...\n');
 
-// Check if .env.local exists
-const envPath = path.join(projectRoot, '.env.local');
-if (!fs.existsSync(envPath)) {
-  console.log('⚠️  No .env.local found. Please run: fortuning-ai config');
-  console.log('   or create .env.local manually from .env.example\n');
-}
-
-// Install dependencies if node_modules doesn't exist
-const nodeModulesPath = path.join(projectRoot, 'node_modules');
-if (!fs.existsSync(nodeModulesPath)) {
-  console.log('📦 Installing dependencies...');
-  try {
-    execSync('npm install', { cwd: projectRoot, stdio: 'inherit' });
-    console.log('✅ Dependencies installed\n');
-  } catch (error) {
-    console.error('❌ Failed to install dependencies:', error.message);
+  // 提示：缺少 .env.local
+  const envPath = path.join(projectRoot, '.env.local');
+  if (!fs.existsSync(envPath)) {
+    console.log('⚠️  No .env.local found. Please create it from .env.example');
+    console.log('   (Not required for build; only needed at runtime.)\n');
   }
-}
 
-console.log('✅ Setup complete!\n');
-console.log('Quick start:');
-console.log('  fortuning-ai config    Configure API key');
-console.log('  fortuning-ai start     Start the server');
-console.log('  fortuning-ai dev       Development mode');
-console.log('\nHappy fortune telling! 🔮\n');
+  console.log('✅ Setup complete!\n');
+  console.log('Quick start:');
+  console.log('  npm run dev       Development mode');
+  console.log('  npm run build     Build for production');
+  console.log('  npm start         Start the production server');
+  console.log('\nHappy fortune telling! 🔮\n');
+} catch (err) {
+  // 任何异常都不应阻断安装 / 构建流程
+  console.warn('postinstall skipped (non-fatal):', err && err.message);
+  process.exit(0);
+}
