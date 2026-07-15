@@ -1,0 +1,46 @@
+name: Deploy to CloudBase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudbase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (Next.js standalone)
+        run: npm run build
+
+      - name: Deploy to CloudBase 云托管
+        uses: TencentCloudBase/cloudbase-action@v2
+        with:
+          secretId: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
+          secretKey: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
+          envId: ${{ secrets.CLOUDBASE_ENV_ID }}
+          # CloudBase Framework 部署（读取仓库根目录 cloudbase.yml）
+          run: npx -y @cloudbase/cli framework deploy -e ${{ secrets.CLOUDBASE_ENV_ID }} --risk
+
+      # 说明：
+      # 若不想用 CI，可在 CloudBase 控制台「云托管 → 新建服务 → 来源: GitHub」
+      # 直接导入本仓库（TTTian-hub/STIAN, 分支 main），Dockerfile 已内置，端口 3000。
+      # 无论哪种方式，都需在服务环境变量中设置：
+      #   AI_PROVIDER=deepseek
+      #   DEEPSEEK_API_KEY=sk-你的真实key
+      # 详见 DEPLOY.md。

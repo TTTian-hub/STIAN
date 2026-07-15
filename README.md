@@ -45,6 +45,19 @@
 
 ---
 
+## 📖 项目简介
+
+**问命 / AskFate** 是一个融合千年东方命理智慧与现代 AI 技术的开源占卜平台。它将老黄历、八字、星座、塔罗、奇门遁甲、六爻、合盘七大命理模块，与具备人设的 AI 解读引擎结合，让用户在精美的交互界面中获得专业、有趣、可追问的命理分析。
+
+- 🧮 **算法 + AI 双引擎**：排盘、历法、卦象等由本地精确算法计算，解读则由 AI 角色完成，结果可解释、可深聊。
+- 🤖 **高可用 AI 架构**：内置 CodeBuddy（腾讯内网）主链路与 DeepSeek 公网兜底的双 Provider 设计，任一链路超时或失败自动切换，保证服务稳定。
+- 🛡️ **生产级防护**：每 IP 限流、并发控制、最小请求间隔与追问上限，开箱即用，适合公网部署。
+- 🐳 **容器化交付**：提供 Dockerfile 与 CloudBase 云托管配置，一条命令即可上线。
+
+> 💡 想直接体验或部署？见下方「🌐 公网部署（CloudBase 云托管）」。完整文档见 [DEPLOY.md](./DEPLOY.md)。
+
+---
+
 ## 🖼️ 预览
 
 <div align="center">
@@ -205,7 +218,7 @@ GLM-4 • Anthropic
 
 ```bash
 # 1️⃣ 克隆仓库
-git clone https://github.com/Temp0jd/AskFate.git
+git clone https://github.com/TTTian-hub/STIAN.git
 cd AskFate
 
 # 2️⃣ 安装依赖
@@ -243,14 +256,37 @@ pm2 start npm --name "askfate" -- start
 
 ---
 
+## 🌐 公网部署（CloudBase 云托管）
+
+想让所有人都能访问？推荐用 **腾讯云 CloudBase 云托管**（容器服务，自带默认公网域名、免备案）。
+
+**方式一：控制台 GitHub 导入（最简单，零配置）**
+1. 打开 [CloudBase 控制台](https://console.cloud.tencent.com/tcb) → 新建环境 → 开通「云托管」。
+2. 云托管 → 新建服务 → 来源选 **代码仓库 / GitHub** → 授权并选择本仓库 `TTTian-hub/STIAN`（分支 `main`）。
+3. 构建配置：Dockerfile 已内置，监听端口填 `3000`，构建命令 `npm run build`，启动命令 `node .next/standalone/server.js`（或 `npm start`）。
+4. 服务环境变量中设置 `AI_PROVIDER=deepseek` 与 `DEEPSEEK_API_KEY=sk-你的key`（其余见 [.env.production.example](./.env.production.example)）。
+5. 部署完成后，控制台给出默认公网域名，直接访问即可。
+
+**方式二：GitHub Actions 自动部署（推送即上线）**
+仓库已内置 `.github/workflows/deploy.yml`。在仓库 **Settings → Secrets and variables → Actions** 中添加：
+- `TENCENT_CLOUD_SECRET_ID`、`TENCENT_CLOUD_SECRET_KEY`（腾讯云 API 密钥）
+- `CLOUDBASE_ENV_ID`（CloudBase 环境 ID）
+之后每次 `git push` 到 `main` 自动构建并部署。
+
+> 📘 完整步骤、环境变量、备案与费用说明见 [DEPLOY.md](./DEPLOY.md)。另提供 `STIAN-deploy.zip` 可直接在云托管「ZIP 上传」部署。
+
+---
+
 ## ⚙️ 环境变量配置
 
-### 🔑 必需配置
+### 🔑 必需配置（公网部署）
 
 ```env
-AI_PROVIDER=deepseek    # AI 提供商: deepseek / kimi / glm
-AI_API_KEY=sk-xxxxx     # 你的 API 密钥
+AI_PROVIDER=deepseek        # 公网固定用 deepseek（CodeBuddy 走内网，公网服务器连不到）
+DEEPSEEK_API_KEY=sk-xxxxx   # 你的 DeepSeek API Key（必填，公网真实可用）
 ```
+
+> 本机开发可用 `AI_PROVIDER=codebuddy`（CodeBuddy Agent SDK 主链路），并自动以 DeepSeek 兜底；详见 [lib/ai](./lib/ai)。
 
 ### 📝 完整配置示例
 
@@ -456,7 +492,7 @@ git push origin feature/AmazingFeature
 npm run build
 npm start
 ```
-或使用 Docker、Vercel、Railway 等平台部署。
+或使用 Docker、CloudBase 云托管、Vercel、Railway 等平台部署。详见 [DEPLOY.md](./DEPLOY.md)。
 </details>
 
 ---
@@ -484,7 +520,7 @@ npm start
 
 <br>
 
-<a href="https://github.com/Temp0jd/AskFate">
+<a href="https://github.com/TTTian-hub/STIAN">
   <img src="https://img.shields.io/badge/⭐%20Star%20on%20GitHub-181717?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
 
@@ -530,6 +566,19 @@ npm start
 <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&height=2&width=100%&section=header"/>
 
 </div>
+
+---
+
+## 📖 Introduction
+
+**AskFate** is an open-source divination platform that blends millennia of Eastern metaphysical wisdom with modern AI. It combines seven modules — Huangli, Bazi, Horoscope, Tarot, Qimen Dunjia, Liuyao, and Synastry — with persona-driven AI interpretation, giving users professional, engaging, and follow-up-friendly readings in a polished UI.
+
+- 🧮 **Algorithm + AI dual engine**: charts, calendars, and hexagrams are computed locally with precise algorithms; interpretations are delivered by AI personas that are explainable and conversational.
+- 🤖 **Resilient AI architecture**: a dual-provider design with CodeBuddy (Tencent intranet) as primary and DeepSeek (public internet) as fallback — automatic switching on timeout/failure keeps the service reliable.
+- 🛡️ **Production-grade guards**: per-IP rate limiting, concurrency control, minimum request interval, and follow-up caps work out of the box for public deployment.
+- 🐳 **Container-ready**: ships with a Dockerfile and CloudBase hosting config so you can go live with one command.
+
+> 💡 Want to try or deploy it? See "🌐 Public Deployment (Tencent CloudBase)" below. Full docs in [DEPLOY.md](./DEPLOY.md).
 
 ---
 
@@ -692,7 +741,7 @@ Each module has a unique AI persona for professional and engaging interpretation
 
 ```bash
 # 1️⃣ Clone repository
-git clone https://github.com/Temp0jd/AskFate.git
+git clone https://github.com/TTTian-hub/STIAN.git
 cd AskFate
 
 # 2️⃣ Install dependencies
@@ -730,14 +779,37 @@ pm2 start npm --name "askfate" -- start
 
 ---
 
+## 🌐 Public Deployment (Tencent CloudBase)
+
+Want everyone to access it? We recommend **Tencent CloudBase Cloud Run** (container hosting with a default public domain, no ICP filing required).
+
+**Option 1: Console GitHub import (simplest, zero-config)**
+1. Open the [CloudBase Console](https://console.cloud.tencent.com/tcb) → create an environment → enable **Cloud Run**.
+2. Cloud Run → create a service → source = **code repository / GitHub** → authorize and pick this repo `TTTian-hub/STIAN` (branch `main`).
+3. Build config: the Dockerfile is built-in, listen port `3000`, build command `npm run build`, start command `node .next/standalone/server.js` (or `npm start`).
+4. In service environment variables set `AI_PROVIDER=deepseek` and `DEEPSEEK_API_KEY=sk-your-key` (see [.env.production.example](./.env.production.example)).
+5. After deployment, the console shows a default public domain — open it directly.
+
+**Option 2: GitHub Actions auto-deploy (ship on push)**
+A `.github/workflows/deploy.yml` is included. Add these repo **Settings → Secrets and variables → Actions** secrets:
+- `TENCENT_CLOUD_SECRET_ID`, `TENCENT_CLOUD_SECRET_KEY` (Tencent Cloud API keys)
+- `CLOUDBASE_ENV_ID` (CloudBase environment ID)
+Every `git push` to `main` then builds and deploys automatically.
+
+> 📘 Full steps, env vars, ICP filing and cost notes: [DEPLOY.md](./DEPLOY.md). A `STIAN-deploy.zip` is also provided for the console "ZIP upload" path.
+
+---
+
 ## ⚙️ Environment Configuration
 
-### 🔑 Required
+### 🔑 Required (Public Deployment)
 
 ```env
-AI_PROVIDER=deepseek    # AI provider: deepseek / kimi / glm
-AI_API_KEY=sk-xxxxx     # Your API key
+AI_PROVIDER=deepseek        # Use deepseek for public hosting (CodeBuddy is intranet-only)
+DEEPSEEK_API_KEY=sk-xxxxx   # Your DeepSeek API Key (required, must be valid on the public server)
 ```
+
+> For local dev you can use `AI_PROVIDER=codebuddy` (CodeBuddy Agent SDK as primary) with automatic DeepSeek fallback. See [lib/ai](./lib/ai).
 
 ### 📝 Configuration Examples
 
@@ -843,7 +915,7 @@ ENABLE_HUANGLI=true      # 📅 Huangli
 
 <br>
 
-<a href="https://github.com/Temp0jd/AskFate">
+<a href="https://github.com/TTTian-hub/STIAN">
   <img src="https://img.shields.io/badge/⭐%20Star%20on%20GitHub-181717?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
 
