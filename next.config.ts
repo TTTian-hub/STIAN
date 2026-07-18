@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   distDir: '.next',
-  // Keep the CodeBuddy Agent SDK out of the server bundle so its internal
-  // __dirname-relative CLI path (cli/bin/codebuddy) resolves correctly.
-  serverExternalPackages: ['@tencent-ai/agent-sdk'],
+  // Keep these packages out of the server bundle so they resolve from
+  // node_modules at runtime (standalone tracing misses their dynamic requires).
+  serverExternalPackages: ['@tencent-ai/agent-sdk', '@cloudbase/node-sdk'],
   images: {
     unoptimized: true,
     formats: ['image/webp', 'image/avif'],

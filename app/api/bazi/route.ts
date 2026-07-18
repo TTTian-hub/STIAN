@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { calculateBazi } from "@/lib/calculations/bazi";
 import { calculateBaziShishen } from "@/lib/calculations/shishen";
 import { countWuxing } from "@/lib/calculations/wuxing";
 import { calculateDayun } from "@/lib/calculations/dayun";
 import { BAZI_SYSTEM_PROMPT, BAZI_FOLLOWUP_PROMPT } from "@/lib/prompts/bazi";
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 
 // Rate limit for AI interpretation only
 const RATE_LIMIT_OPTIONS = {
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const identifier = `bazi:${clientIP}`;
 
   try {
-    const { prompt, name, birthDate, birthTime, gender, isEarlyZi, timeUnknown } = await req.json();
+    const { prompt, name, birthDate, birthTime, gender, isEarlyZi, timeUnknown, request_id } = await req.json();
 
     // 第一步：纯计算排盘（不触发AI，不限流）
     let baziData = null;
@@ -88,18 +88,16 @@ export async function POST(req: NextRequest) {
       finalSystemPrompt = BAZI_SYSTEM_PROMPT + "\n\n" + BAZI_FOLLOWUP_PROMPT;
     }
 
-    const provider = getGlobalAIProvider();
-    const stream = await provider.streamCompletion(prompt, {
+    return handleBillingStream(req, 'bazi', {
+      prompt,
       systemPrompt: finalSystemPrompt,
-      maxTokens: 8192,
-    });
-
-    return new Response(stream, {
-      headers: createRateLimitHeaders(
+      requestId: request_id,
+      rateLimitHeaders: createRateLimitHeaders(
         rateLimitResult.remaining,
         rateLimitResult.resetTime,
         RATE_LIMIT_OPTIONS.maxRequests
       ),
+      summary: `八字解读：${name || '匿名'}｜${gender === 'female' ? '女' : '男'}｜${birthDate || '-'} ${birthTime || ''}`,
     });
   } catch (error) {
     console.error("Bazi API error:", error);

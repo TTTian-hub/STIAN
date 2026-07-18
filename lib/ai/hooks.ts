@@ -1,6 +1,20 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { getToken, ensureTrial } from '@/lib/quota';
+import { usePaywall } from '@/lib/paywall-store';
+import { useBalance } from '@/lib/balance-store';
+
+function newRequestId(): string {
+  try {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
+    }
+  } catch {
+    /* ignore */
+  }
+  return `r_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
 interface UseAIStreamOptions {
   onStart?: () => void;
@@ -55,6 +69,14 @@ export function useAIStream(options: UseAIStreamOptions = {}): UseAIStreamReturn
     setIsLoading(true);
     setIsStreaming(false);
 
+    // 确保持有有效的 entitlement token（供 middleware 放行 + 服务端识别用户）。
+    // 注意：真正的剩余次数以服务端数据库为准，前端不再本地记账。
+    let token = getToken();
+    if (!token) {
+      await ensureTrial();
+      token = getToken();
+    }
+
     options.onStart?.();
 
     const controller = new AbortController();
@@ -62,19 +84,28 @@ export function useAIStream(options: UseAIStreamOptions = {}): UseAIStreamReturn
 
     try {
       const endpoint = streamOptions.endpoint || '/api/ai/stream';
+      const request_id = newRequestId();
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-entitlement': token || '',
+        },
         body: JSON.stringify({
           prompt,
           systemPrompt: streamOptions.systemPrompt,
+          request_id,
         }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        // 余额不足 / 无凭证：弹付费墙，并把服务端提示（如"还差 X 次"）透传给 UI
+        if (response.status === 402) {
+          usePaywall.getState().openPaywall();
+        }
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
@@ -102,6 +133,8 @@ export function useAIStream(options: UseAIStreamOptions = {}): UseAIStreamReturn
 
       setIsStreaming(false);
       abortControllerRef.current = null;
+      // 以服务端余额为准，刷新显示
+      useBalance.getState().refresh();
       options.onComplete?.(fullTextRef.current);
 
     } catch (err) {
@@ -152,24 +185,39 @@ export function useAIComplete(): UseAICompleteReturn {
     setIsLoading(true);
     setError(null);
 
+    // 确保持有有效的 entitlement token（真正余额以服务端为准）
+    let token = getToken();
+    if (!token) {
+      await ensureTrial();
+      token = getToken();
+    }
+
     try {
       const endpoint = completeOptions.endpoint || '/api/ai/complete';
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-entitlement': token || '',
+        },
         body: JSON.stringify({
           prompt,
           systemPrompt: completeOptions.systemPrompt,
+          request_id: newRequestId(),
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 402) {
+          usePaywall.getState().openPaywall();
+        }
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      useBalance.getState().refresh();
       setIsLoading(false);
       return data.text || '';
 

@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Sparkles, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Menu, X, Sun, Moon, ChevronDown, Coins } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+import { usePaywall } from '@/lib/paywall-store';
+import { useBalance } from '@/lib/balance-store';
 
 const navItems = [
   { href: '/huangli', label: '黄历' },
@@ -68,6 +70,12 @@ function MoreMenu() {
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { openPaywall } = usePaywall();
+  const { balance, refresh: refreshBalance } = useBalance();
+
+  useEffect(() => {
+    refreshBalance();
+  }, [refreshBalance]);
 
   return (
     <nav className="clean-navbar">
@@ -95,6 +103,14 @@ export function Navbar() {
 
           {/* Theme Toggle & Mobile Menu */}
           <div className="flex items-center gap-1">
+            <button
+              onClick={openPaywall}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 dark:hover:bg-amber-900/40"
+              aria-label="我的额度"
+            >
+              <Coins className="w-3.5 h-3.5" />
+              <span>{balance}</span>
+            </button>
             <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}

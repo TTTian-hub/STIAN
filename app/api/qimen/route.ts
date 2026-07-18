@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { calculateQimen } from "@/lib/calculations/qimen";
 import { QIMEN_SYSTEM_PROMPT } from "@/lib/prompts/qimen";
 
@@ -13,6 +12,7 @@ const QIMEN_FOLLOWUP_PROMPT = `用户想继续就刚才的奇门局深入交流�
 4. 绝对绝对不要用任何星号***
 5. 保持慢条斯理、看透世事的口吻`
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 
 // Rate limit for AI interpretation only
 const RATE_LIMIT_OPTIONS = {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const identifier = `qimen:${clientIP}`;
 
   try {
-    const { prompt, date, method, category, isFollowUp, sessionId } = await req.json();
+    const { prompt, date, method, category, isFollowUp, sessionId, request_id } = await req.json();
 
     // 第一步：纯计算起局（不触发AI，不限流）
     let qimenData = null;
@@ -67,19 +67,17 @@ export async function POST(req: NextRequest) {
       finalSystemPrompt = QIMEN_SYSTEM_PROMPT + "\n\n" + QIMEN_FOLLOWUP_PROMPT;
     }
 
-    const provider = getGlobalAIProvider();
     const categoryPrefix = category ? `【占测类别：${category}】` : "";
-    const stream = await provider.streamCompletion(`${categoryPrefix}${prompt}`, {
+    return handleBillingStream(req, 'qimen', {
+      prompt: `${categoryPrefix}${prompt}`,
       systemPrompt: finalSystemPrompt,
-      maxTokens: 8192,
-    });
-
-    return new Response(stream, {
-      headers: createRateLimitHeaders(
+      requestId: request_id,
+      rateLimitHeaders: createRateLimitHeaders(
         rateLimitResult.remaining,
         rateLimitResult.resetTime,
         RATE_LIMIT_OPTIONS.maxRequests
       ),
+      summary: `奇门遁甲：${category || '-'}｜${(prompt || '').slice(0, 120)}`,
     });
   } catch (error) {
     console.error("Qimen API error:", error);

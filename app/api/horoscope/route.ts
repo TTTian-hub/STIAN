@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 import { HOROSCOPE_SYSTEM_PROMPT } from "@/lib/prompts/horoscope";
 
 // 追问功能 Prompt
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       return createRateLimitErrorResponse(rateLimitResult);
     }
 
-    const { prompt, isFollowUp, sessionId } = await req.json();
+    const { prompt, isFollowUp, sessionId, request_id } = await req.json();
 
     if (!prompt) {
       return Response.json({ error: "Prompt is required" }, { status: 400 });
@@ -59,16 +59,12 @@ export async function POST(req: NextRequest) {
       finalSystemPrompt = HOROSCOPE_SYSTEM_PROMPT + "\n\n" + HOROSCOPE_FOLLOWUP_PROMPT;
     }
 
-    const provider = getGlobalAIProvider();
-    const stream = await provider.streamCompletion(prompt, {
+    return handleBillingStream(req, 'horoscope', {
+      prompt,
       systemPrompt: finalSystemPrompt,
+      requestId: request_id,
       temperature: 0.7,
-      maxTokens: 8192,
-    });
-
-    // Track active request (decrement) - we'll do this in the finally block
-    return new Response(stream, {
-      headers: {
+      rateLimitHeaders: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",
         ...createRateLimitHeaders(
@@ -77,6 +73,7 @@ export async function POST(req: NextRequest) {
           RATE_LIMIT_OPTIONS.maxRequests
         ),
       },
+      summary: (prompt || '').slice(0, 200),
     });
   } catch (error) {
     console.error("Horoscope API error:", error);

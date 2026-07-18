@@ -47,3 +47,4 @@ coverage
 *.cert
 secrets/
 config/local*
+billing-service/node_modules

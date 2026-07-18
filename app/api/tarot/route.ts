@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { TAROT_SYSTEM_PROMPT, TAROT_FOLLOWUP_PROMPT } from "@/lib/prompts/tarot";
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 
 // Strict rate limit: 5 requests per minute per IP, max 1 concurrent
 const RATE_LIMIT_OPTIONS = {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return createRateLimitErrorResponse(rateLimitResult);
     }
 
-    const { prompt, isFollowUp, sessionId } = await req.json();
+    const { prompt, isFollowUp, sessionId, request_id } = await req.json();
 
     if (!prompt) {
       return Response.json({ error: "Prompt is required" }, { status: 400 });
@@ -47,15 +47,12 @@ export async function POST(req: NextRequest) {
       finalSystemPrompt = TAROT_SYSTEM_PROMPT + "\n\n" + TAROT_FOLLOWUP_PROMPT;
     }
 
-    const provider = getGlobalAIProvider();
-    const stream = await provider.streamCompletion(prompt, {
+    return handleBillingStream(req, 'tarot', {
+      prompt,
       systemPrompt: finalSystemPrompt,
+      requestId: request_id,
       temperature: 0.7,
-      maxTokens: 8192,
-    });
-
-    return new Response(stream, {
-      headers: {
+      rateLimitHeaders: {
         "Content-Type": "text/plain; charset=utf-8",
         "Transfer-Encoding": "chunked",
         ...createRateLimitHeaders(
@@ -64,6 +61,7 @@ export async function POST(req: NextRequest) {
           RATE_LIMIT_OPTIONS.maxRequests
         ),
       },
+      summary: (prompt || '').slice(0, 200),
     });
   } catch (error) {
     console.error("Tarot API error:", error);

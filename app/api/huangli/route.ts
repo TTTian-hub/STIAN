@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { calculateHuangli } from "@/lib/calculations/huangli";
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 
 // Rate limit for AI interpretation only
 const RATE_LIMIT_OPTIONS = {
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { prompt, date, isFollowUp, sessionId } = body;
+    const { prompt, date, isFollowUp, sessionId, request_id } = body;
 
     // 第一步：纯计算（不触发AI，不限流）
     let huangliData = null;
@@ -88,18 +88,19 @@ export async function POST(req: NextRequest) {
       finalSystemPrompt = HUANGLI_SYSTEM_PROMPT + "\n\n" + HUANGLI_FOLLOWUP_PROMPT;
     }
 
-    const provider = getGlobalAIProvider();
-    const stream = await provider.streamCompletion(prompt, {
+    // 经计费 sidecar 流式代理（扣次 + 透传纯文本流），绝不在 Next 进程内构造 Web Stream，
+    // 规避此前导致 nginx 502 的 ReadableStream 品牌冲突；huangli 计价为 0（免费查询）。
+    return handleBillingStream(req, 'huangli', {
+      prompt,
       systemPrompt: finalSystemPrompt,
-      maxTokens: 8192,
-    });
-
-    return new Response(stream, {
-      headers: createRateLimitHeaders(
+      requestId: request_id,
+      temperature: 0.7,
+      rateLimitHeaders: createRateLimitHeaders(
         rateLimitResult.remaining,
         rateLimitResult.resetTime,
         RATE_LIMIT_OPTIONS.maxRequests
       ),
+      summary: (prompt || '').slice(0, 200),
     });
   } catch (error) {
     console.error("Huangli API error:", error);

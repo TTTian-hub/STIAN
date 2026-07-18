@@ -43,3 +43,6 @@ next-env.d.ts
 # private directory with sensitive files
 private/
 .claude/
+
+# sidecar deps (installed fresh in Docker runner stage; local dev copy ignored)
+billing-service/node_modules

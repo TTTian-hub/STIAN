@@ -1,5 +1,5 @@
 {
-  "envId": "{{env.ENV_ID}}",
+  "envId": "stain-d4geos14g9529a413",
   "version": "2.0",
   "framework": {
     "name": "askfate",
@@ -25,5 +25,8 @@
         }
       }
     }
+  },
+  "cloudrun": {
+    "name": "stain"
   }
 }

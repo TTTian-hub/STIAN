@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
-import { getGlobalAIProvider } from "@/lib/ai/factory";
 import { calculateByNumber, calculateByTime, calculateByManual } from "@/lib/calculations/liuyao";
 import { calculateLiuYaoEnhanced } from "@/lib/calculations/liuyao-enhanced";
 import { LIUYAO_SYSTEM_PROMPT, LIUYAO_FOLLOWUP_PROMPT } from "@/lib/prompts/liuyao";
 import { checkRateLimit, checkFollowUpLimit, getClientIP, createRateLimitHeaders, trackActiveRequest, createRateLimitErrorResponse } from "@/lib/rate-limit";
+import { handleBillingStream } from "@/lib/api-guard";
 
 // Rate limit for AI interpretation only
 const RATE_LIMIT_OPTIONS = {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const identifier = `liuyao:${clientIP}`;
 
   try {
-    const { prompt, method, numbers, date, manualResults, question, conversationHistory, isFollowUp } = await req.json();
+    const { prompt, method, numbers, date, manualResults, question, conversationHistory, isFollowUp, request_id } = await req.json();
 
     // 第一步：纯计算起卦（不触发AI，不限流）
     let liuyaoData = null;
@@ -103,18 +103,16 @@ export async function POST(req: NextRequest) {
       ).join('\n')}`;
     }
 
-    const provider = getGlobalAIProvider();
-    const stream = await provider.streamCompletion(prompt, {
-      systemPrompt,
-      maxTokens: 8192,
-    });
-
-    return new Response(stream, {
-      headers: createRateLimitHeaders(
+    return handleBillingStream(req, 'liuyao', {
+      prompt,
+      systemPrompt: systemPrompt,
+      requestId: request_id,
+      rateLimitHeaders: createRateLimitHeaders(
         rateLimitResult.remaining,
         rateLimitResult.resetTime,
         RATE_LIMIT_OPTIONS.maxRequests
       ),
+      summary: `六爻占卜：${method || '-'}｜${question || (prompt || '').slice(0, 120)}`,
     });
   } catch (error) {
     console.error("Liuyao API error:", error);
