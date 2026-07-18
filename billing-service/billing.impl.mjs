@@ -119,9 +119,12 @@ export async function consume(userId, feature, requestId, costOverride) {
   const ledgerCol = db.collection(COLLECTIONS.LEDGER);
 
   const existing = await ledgerCol.doc(ledgerId).get();
-  if (existing.data && existing.data._id) {
-    const d = existing.data;
-    return { ok: true, balance: d.balance_after, already: true, ledgerId, requestId };
+  // @cloudbase/node-sdk v3 的 doc(id).get() 返回 { data: [doc] }（数组），需归一化
+  const existingDoc = Array.isArray(existing.data)
+    ? (existing.data[0] || null)
+    : (existing.data || null);
+  if (existingDoc && existingDoc._id) {
+    return { ok: true, balance: existingDoc.balance_after, already: true, ledgerId, requestId };
   }
 
   if (cost <= 0) {
@@ -168,7 +171,9 @@ export async function refund(userId, requestId, feature) {
   const ledgerId = `${userId}::${requestId}`;
   const ledgerCol = db.collection(COLLECTIONS.LEDGER);
   const rec = await ledgerCol.doc(ledgerId).get();
-  if (!rec.data || !rec.data._id) return false;
+  // @cloudbase/node-sdk v3 的 doc(id).get() 返回 { data: [doc] }（数组），需归一化
+  const recDoc = Array.isArray(rec.data) ? (rec.data[0] || null) : (rec.data || null);
+  if (!recDoc || !recDoc._id) return false;
   const row = rec.data;
   if (row.refunded || row.delta >= 0) return false;
 
